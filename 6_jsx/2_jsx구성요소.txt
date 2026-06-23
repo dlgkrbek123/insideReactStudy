@@ -1,0 +1,40 @@
+------------------------------------------------------
+
+JSXElements: JSX 구문의 단위
+
+1. JSXElement
+- 개별 UI 구성 요소
+- 리액트 컴포넌트로 변환되어 렌더링되는 기본 단위
+
+JSXSelfClosingElement: <img />, <textarea />
+
+JSXOpeningElement
+- div, p, h1같은 태그이름 (호스트 컴포넌트는 문자열로 전달)
+- 커스텀 컴포넌트인 경우 대문자
+
+JSXChildren 
+- optional
+- 여러개의 JSXElement를 포함할 수 있다.
+
+JSXClosingElement
+- JSXOpeningElement과 1대1로 매핑되는 닫힘 태그
+
+
+2. JSXFragment
+- 부모 요소없이 여러 자식요소를 그룹화하기 위한 문법
+- <></>, <Fragment></Fragment>
+
+3. JSXElementName
+- 기본 HTML태그명과 커스텀 컴포넌트를 지정하는 데 사용
+- JSXOpeningElement를 구성
+
+------------------------------------------------------
+
+JSXAttributes
+- JSXElement에 추가정보를 전달하는 키-값형태의 설정
+- 컴포넌트의 props로 전달됨
+- boolean으로 전달하고자 한다면 값지정 불필요
+- 값으로 JSXElement나 JSXFragment 전달가능
+  - 외부에서 자식 컴포넌트 내부에서 렌더링할 요소를 결정가능
+
+------------------------------------------------------
