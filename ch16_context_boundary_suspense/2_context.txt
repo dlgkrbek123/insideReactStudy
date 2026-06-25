@@ -1,0 +1,39 @@
+------------------------------------------------------
+
+부모에서 자식 컴포넌트에 props 전달함
+컴포넌트 구조가 복잡해지니 번거롭긴 하네
+사용하지 않을 props를 자식 컴포넌트로 전달하기 위해 내려받아야함
+
+context api를 활용하여 props-drilling을 해결
+하위 컴포넌트에서만 컨텍스트 사용이 가능 => 이를 어기면 에러 발생
+
+------------------------------------------------------
+
+const MyContext = React.creatContext<ContextType>(initValue)
+const myContext = useContext(MyContext)
+
+return <MyContext value={value}>{children}</MyContext>
+// 19 이전에는 MyContext.Provider 사용
+
+------------------------------------------------------
+
+context가 전역상태라고 볼 수 있지만 오해다.
+props drilling을 피하기 위해 만든 도구
+
+리렌더링시 객체나 배열이 새로 생기게 하면 안된다 => 불필요한 리렌더링
+컨텍스트는 관심사별로 잘게 쪼개는게 좋다 => 관심사가 바뀌었을때만 리렌더링
+
+------------------------------------------------------
+
+selector패턴을 쓰려면 use-context-selector를 다운받아 써보던가
+아니면 HOC + memo 를 조합해서 최적화 해보자.
+
+const withCounter =(HeavyComponent: React.ComponentType<any>) => {
+  const HeavyComponentMemo = React.memo(HeavyComponent)
+  return (props: any) => {
+    const { count } = useContext(CounterContext);
+    return <HeavyComponentMemo {...props} count={count} />;
+  };
+ };
+ 
+------------------------------------------------------

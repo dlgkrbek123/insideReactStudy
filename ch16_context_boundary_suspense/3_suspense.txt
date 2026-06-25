@@ -1,0 +1,112 @@
+------------------------------------------------------
+
+Suspense
+- 비동기 작업이 완료될떄까지 UI 렌더링을 선언적으로 일시 중단하고
+  FallbackUI를 보여주는 메커니즘
+- 비동기 fetch, 지연로딩등의 작업
+
+------------------------------------------------------
+
+react.lazy와 엮어서 사용
+- 해당 라우트에 처음 접근할 때까지 lazy로 임포트한 컴포넌트는 로드되지 않음
+- Suspense는 하위 컴포넌트가 로드될 때까지 fallback UI를 보여줌
+
+const Home = lazy(() => import('./routes/Home'));
+const About = lazy(() => import('./routes/About'));
+const Profile = lazy(() => import('./routes/Profile'));
+
+const App = () => (
+  <Router>
+    <nav>
+      <ul>
+        <li>
+          <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/about">About</Link>
+        </li>
+        <li>
+          <Link to="/profile">Profile</Link>
+        </li>
+      </ul>
+    </nav>
+  
+    <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/profile" element={<Profile />} />
+      </Routes>
+    </Suspense>
+  </Router>
+);
+
+------------------------------------------------------
+
+code splitting
+- 애플리케이션의 번들을 여러개의 청크로 나누어 필요하는 것만 우선적으로 로드
+- 초기 번들 크기를 줄이고 성능개선
+
+------------------------------------------------------
+
+17에서는 아직 SSR과 엮어서 사용은 못함
+<Suspense>로 둘러싸인 지연되는 컴포넌트의 형제 컴포넌트의 경우 fallback이 보이는데도
+DOM에 마운트되거나 useEffect가 호출됨
+
+18버전에서는 createRoot() API를 통해 동시성 기능이 도입되면서 SSR에서도 동작되게 개선
+형제 컴포넌트들의 렌더링 및 이펙트 실행도 잘 지연됨
+
+19에서는 성능 개선됨
+- 18까지는 하나의 컴포넌트가 중지되면 형제 컴포넌트 일단 렌더링 시도함
+- 끝나면 폴뱃 UI가 커밋되어 표시됨
+- 19부터는 즉시 FallbackUI 커밋하고 형제 컴포넌트의 렌더링을 스케쥴링
+
+------------------------------------------------------
+
+리액트는 결론적으로 상황에 따른 Fallback UI를 보여주는 2가지 메카니즘을 제공하게 됨
+다른 목적을 가지지만 더 안정적이고 부드러운 경험을 제공함
+
+ErrorBoundary: 렌더링/생명주기 에러 발생시 포착하여 Fallback UI 노출
+Suspense: 렌더링이 지연될 동안 Fallback UI 노출
+
+<ErrorBoundary>
+  <Suspense></Suspense>
+</ErrorBoundary>
+
+------------------------------------------------------
+
+어떻게 자식 컴포넌트 내부에서 발생하는 비동기 작업을 감지하고 폴백 UI와 
+실제 콘텐츠를 보여줄 수 있는걸까?
+
+비동기 작업이 있는경우 throw Promise를 수행 (에러가 아닌 잠시 중단하고 기다려 달라)
+리액트 재조정자는 try-catch로 컴포넌트를 렌더링하는데 catch에서 promise인 경우 에러가
+아닌 일시 중단신호임을 인지하고 가까운 Suspense를 찾음
+
+Suspense에 해당하는 파이버노드는 이를 감지하고 FallbackUI를 커밋하여 표시됨
+Promise가 resolve되면 컴포넌트 렌더링을 새로 진행하여 커밋
+
+이게 잘 동작하려면 프로미스의 참조 일관성이 보장되어야 함
+- react-query
+- 프로미스를 컴포넌트 외부에서 props로 전달하거나
+
+------------------------------------------------------
+
+use()라는 hooks가 추가됨
+- 조건문, 반복문내에서도 호출가능 ㄷㄷ
+  - fiber에 저장한 hook List와 별개의 메커니즘을 처리
+- context값 읽기 or 비동기 로직을 간결하게 작성 가능
+
+useContext를 원래 썼는데 조건문이나 반복문 내에서는 호출 못했지..
+- 항상 최상단에서 호출하다보니 안 쓰일떄도 호출은 해서 구독한 상태
+- use는 조건문 내에서 호출가능하니 필요할때 읽어올 수 있음
+
+기존에는 useEffect에서 data fetch
+- 컴포넌트가 마운트되고 부수효과 실행하니까 자연스럽긴한데..
+  - 워터폴이 생길 수 있음
+  - 상태관리를 해야함 (loading, data, error)
+  - deps변경이 순식간에 여러번 된 경우 비동기 순서에 대한 보장
+
+- use와 Suspense를 같이 쓰면 우아하게 해결가능
+  - 컴포넌트 렌더링과 데이터 요청을 병렬로 시작
+
+------------------------------------------------------
