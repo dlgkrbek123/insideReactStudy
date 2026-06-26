@@ -1,0 +1,43 @@
+------------------------------------------------------
+
+앱라우터 전에 페이지 라우터가 있었다.
+- pages 폴더 밑에 파일로 페이지를 작성 (파일명 기반)
+- app 디렉토리 밑에 파일을 작성 하게 변경됨 (폴더 기반)
+  - RSC를 사용하려면 앱 라우터 필수
+  - 중첩 레이아웃 관리
+
+
+1. page.tsx : 해당 라우트의 고유한 페이지 컴포넌트
+2. layout.tsx : 세그먼트 내에서 공통적으로 적용되는 layout 작성
+3. template.tsx :  layout.tsx와 유사하지만 페이지 이동시 새로운 인스턴스 생성
+4. error.tsx : page.tsx와 자식 컴포넌트에서 발생한 에러를 처리하는 에러 바운더리
+5. loading.tsx : page.tsx와 그 자식 컴포넌트들을 감싸는 서스펜스
+6. not-found.tsx : notFound() 호출이나 라우트 리소스 못찾을때 렌더링되는 페이지
+
+<Layout>
+  <Template>
+    <ErrorBoundary>
+      <Suspense fallback={<Loading />}>
+        <ErrorBoundary fallback={<NotFound />}>
+          </Page> 
+        </ErrorBoundary>
+      </Suspense>
+    </ErrorBoundary>
+  </Template>
+</Layout>
+
+------------------------------------------------------
+
+layout.tsx가 여러겹으로 자연스럽게 중첩됨
+=> 페이지 라우터에서 페이지별로 레이아웃 일일히 적용하던 번거로움이 줄음
+
+app루트에 있는 layout.tsx가 루트 레이아웃
+- html, body를 직접 렌더링
+- 전역 css / 폰트 => 기본 html
+- export const metadata로 기본 메타 데이터 설정
+
+layout.tsx는 페이지 변경에도 리렌더링되지 않음
+template.tsx는 페이지 변경시 컴포넌트 초기화
+- template은 params 전달 못받으므로 usePathname, useParams써야함
+
+------------------------------------------------------
